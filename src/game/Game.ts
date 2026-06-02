@@ -179,6 +179,14 @@ export class Game {
     togglePlayPauseBtn(this.state.isPaused);
   }
 
+  public isPaused(): boolean {
+    return this.state.isPaused;
+  }
+
+  public isGameOver(): boolean {
+    return this.state.isGameOver;
+  }
+
   public getInputController(): InputController {
     return this.input;
   }

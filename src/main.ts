@@ -69,3 +69,33 @@ dpadMapping.forEach(({ element, dir }) => {
     inputCtrl.setDirection(dir);
   }, { passive: false });
 });
+
+// Tab navigation handler
+const navButtons = document.querySelectorAll('.nav-btn');
+const tabContents = document.querySelectorAll('[data-tab-content]');
+
+navButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const targetId = btn.getAttribute('data-target');
+    if (!targetId) return;
+
+    navButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    tabContents.forEach(t => t.classList.remove('active'));
+    const targetTab = document.getElementById(targetId);
+    if (targetTab) {
+      targetTab.classList.add('active');
+    }
+
+    // Auto-pause game if switching away from the Arcade screen
+    if (targetId !== 'tab-arcade') {
+      if (!game.isPaused() && !game.isGameOver()) {
+        game.togglePause();
+      }
+    }
+
+    // Trigger window resize to align canvas scaling to the new active container
+    window.dispatchEvent(new Event('resize'));
+  });
+});
