@@ -17,6 +17,11 @@
   <body>
     <div id="app">
       <header class="app-header">
+        <div class="status-badges">
+          <span class="badge status-live"><span class="badge-dot"></span> LOCAL ARCADE</span>
+          <span class="badge status-input"><span class="badge-dot"></span> KEYBOARD READY</span>
+          <span class="badge status-storage"><span class="badge-dot"></span> OFFLINE SCORES</span>
+        </div>
         <h1 class="logo-text">NEON <span class="accent-text">SNAKE</span> ARCADE</h1>
         <p class="app-description">
           A modular browser-based arcade classic. Navigate the grid, devour energy cores, speed up, and rank on the leaderboards!
@@ -31,11 +36,15 @@
             <div class="cabinet-score-bar">
               <div class="score-box">
                 <span class="score-label">SCORE</span>
-                <span id="score-value" class="score-digital">0000</span>
+                <span id="score-value" class="score-digital">0</span>
               </div>
-              <div class="score-box">
+              <div class="score-box text-center">
+                <span class="score-label">SPEED</span>
+                <span id="speed-value" class="score-digital">LVL 1</span>
+              </div>
+              <div class="score-box text-right">
                 <span class="score-label">HI-SCORE</span>
-                <span id="best-score-value" class="score-digital">0000</span>
+                <span id="best-score-value" class="score-digital">0</span>
               </div>
             </div>
 

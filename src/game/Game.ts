@@ -14,7 +14,8 @@ import {
   getDOM, 
   updateScoreDisplay, 
   updateBestScoreDisplay, 
-  togglePlayPauseBtn 
+  togglePlayPauseBtn,
+  updateSpeedDisplay
 } from '../ui/dom.ts';
 
 export class Game {
@@ -54,6 +55,7 @@ export class Game {
       speed: INITIAL_SPEED,
     };
     updateBestScoreDisplay(this.state.bestScore);
+    updateSpeedDisplay(1);
   }
 
   public reset(): void {
@@ -71,6 +73,7 @@ export class Game {
     this.state.speed = INITIAL_SPEED;
 
     updateScoreDisplay(0);
+    updateSpeedDisplay(1);
     togglePlayPauseBtn(false);
 
     this.lastTickTime = performance.now();
@@ -145,6 +148,7 @@ export class Game {
       // Decrement frame interval per eaten food, capped at MIN_SPEED (speed ceiling)
       const speedFactor = Math.floor(this.state.score / 10);
       this.state.speed = Math.max(MIN_SPEED, INITIAL_SPEED - speedFactor * SPEED_DECREMENT);
+      updateSpeedDisplay(speedFactor + 1);
 
       this.food.spawn(this.snake);
       this.state.food = this.food.getPosition();

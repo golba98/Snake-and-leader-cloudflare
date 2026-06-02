@@ -144,21 +144,55 @@ export class Renderer {
   }
 
   private drawTextOverlay(title: string, subtitle: string, titleColor: string): void {
+    // 1. Semi-transparent black background
     this.ctx.fillStyle = 'rgba(10, 11, 16, 0.85)';
     this.ctx.fillRect(0, 0, this.displayWidth, this.displayHeight);
 
-    this.ctx.font = "bold 26px 'Orbitron', 'Courier New', monospace";
+    // 2. Draw CRT scanlines
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
+    for (let y = 0; y < this.displayHeight; y += 4) {
+      this.ctx.fillRect(0, y, this.displayWidth, 1.5);
+    }
+
+    // 3. Central glowing panel
+    const boxW = this.displayWidth * 0.8;
+    const boxH = 120;
+    const boxX = (this.displayWidth - boxW) / 2;
+    const boxY = (this.displayHeight - boxH) / 2;
+
+    this.ctx.save();
+    this.ctx.fillStyle = 'rgba(21, 23, 38, 0.8)';
+    this.ctx.strokeStyle = titleColor;
+    this.ctx.lineWidth = 1.5;
+    this.ctx.shadowBlur = 15;
+    this.ctx.shadowColor = titleColor;
+    
+    this.ctx.beginPath();
+    if (typeof this.ctx.roundRect === 'function') {
+      this.ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+    } else {
+      this.ctx.rect(boxX, boxY, boxW, boxH);
+    }
+    this.ctx.fill();
+    this.ctx.stroke();
+    this.ctx.restore();
+
+    // 4. Title Text
+    this.ctx.save();
+    this.ctx.font = "bold 24px 'Orbitron', 'Courier New', monospace";
     this.ctx.fillStyle = titleColor;
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
-    
-    this.ctx.shadowBlur = 12;
+    this.ctx.shadowBlur = 8;
     this.ctx.shadowColor = titleColor;
-    this.ctx.fillText(title, this.displayWidth / 2, this.displayHeight / 2 - 15);
+    this.ctx.fillText(title, this.displayWidth / 2, this.displayHeight / 2 - 16);
+    this.ctx.restore();
     
-    this.ctx.shadowBlur = 0;
-    this.ctx.font = "14px 'Inter', sans-serif";
+    // 5. Subtitle Text
+    this.ctx.font = "500 12px 'Inter', sans-serif";
     this.ctx.fillStyle = '#94a3b8';
-    this.ctx.fillText(subtitle, this.displayWidth / 2, this.displayHeight / 2 + 20);
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(subtitle, this.displayWidth / 2, this.displayHeight / 2 + 24);
   }
 }
