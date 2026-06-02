@@ -2,6 +2,7 @@ import './styles/main.css';
 import { Game } from './game/Game.ts';
 import { Leaderboard } from './leaderboard/Leaderboard.ts';
 import { getDOM } from './ui/dom.ts';
+import type { Difficulty } from './game/constants.ts';
 
 const dom = getDOM();
 const leaderboard = new Leaderboard();
@@ -22,7 +23,22 @@ dom.restartBtn?.addEventListener('click', () => {
   game.reset();
 });
 
+dom.overlayRestartBtn?.addEventListener('click', () => {
+  game.reset();
+});
+
+// Settings controllers
+dom.difficultySelect?.addEventListener('change', (e) => {
+  const select = e.target as HTMLSelectElement;
+  game.changeDifficulty(select.value as Difficulty);
+});
+
+dom.soundBtn?.addEventListener('click', () => {
+  game.toggleMute();
+});
+
 dom.clearLeaderboardBtn?.addEventListener('click', () => {
+  game.playClick();
   const confirmed = confirm('Are you sure you want to clear the local leaderboard? This cannot be undone.');
   if (confirmed) {
     leaderboard.clear();
@@ -36,24 +52,34 @@ dom.submitScoreForm?.addEventListener('submit', async (e) => {
   const score = game.getScore();
 
   await leaderboard.submitScore(name, score);
-  
-  dom.submitScoreModal.classList.remove('visible');
   game.reset();
+  
+  // Auto-switch to leaderboard tab so user sees their rank
+  const leaderboardTabBtn = document.querySelector('.nav-btn[data-target="tab-leaderboard"]') as HTMLButtonElement;
+  leaderboardTabBtn?.click();
 });
 
-// Modal cancel button handler
+// Overlay cancel button handler
 dom.cancelSubmitBtn?.addEventListener('click', () => {
-  dom.submitScoreModal.classList.remove('visible');
-  game.reset();
+  game.cancelSubmit();
+});
+
+// "Back to Game" action helper for views
+document.querySelectorAll('.back-to-game-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    game.playClick();
+    const playTabBtn = document.querySelector('.nav-btn[data-target="tab-arcade"]') as HTMLButtonElement;
+    playTabBtn?.click();
+  });
 });
 
 // Mobile/Touch D-pad button bindings
 const inputCtrl = game.getInputController();
 
-dom.btnUp?.addEventListener('click', () => inputCtrl.setDirection('UP'));
-dom.btnDown?.addEventListener('click', () => inputCtrl.setDirection('DOWN'));
-dom.btnLeft?.addEventListener('click', () => inputCtrl.setDirection('LEFT'));
-dom.btnRight?.addEventListener('click', () => inputCtrl.setDirection('RIGHT'));
+dom.btnUp?.addEventListener('click', () => { game.playClick(); inputCtrl.setDirection('UP'); });
+dom.btnDown?.addEventListener('click', () => { game.playClick(); inputCtrl.setDirection('DOWN'); });
+dom.btnLeft?.addEventListener('click', () => { game.playClick(); inputCtrl.setDirection('LEFT'); });
+dom.btnRight?.addEventListener('click', () => { game.playClick(); inputCtrl.setDirection('RIGHT'); });
 
 // Prevent delay and zooming on iOS and mobile browsers for immediate response
 const dpadMapping = [
@@ -66,6 +92,7 @@ const dpadMapping = [
 dpadMapping.forEach(({ element, dir }) => {
   element?.addEventListener('touchstart', (e) => {
     e.preventDefault(); // Prevents mobile touch scroll/zoom delay
+    game.playClick();
     inputCtrl.setDirection(dir);
   }, { passive: false });
 });
@@ -79,6 +106,8 @@ navButtons.forEach(btn => {
     const targetId = btn.getAttribute('data-target');
     if (!targetId) return;
 
+    game.playClick();
+
     navButtons.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
@@ -90,7 +119,7 @@ navButtons.forEach(btn => {
 
     // Auto-pause game if switching away from the Arcade screen
     if (targetId !== 'tab-arcade') {
-      if (!game.isPaused() && !game.isGameOver()) {
+      if (!game.isPaused() && !game.isGameOver() && !game.isReady()) {
         game.togglePause();
       }
     }
