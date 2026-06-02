@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Meta tags for SEO -->
-    <title>Neon Snake Arcade - Play Free Retro Game Online</title>
+    <title>Neon Snake Arcade - Play Online Tabbed Retro Game</title>
     <meta name="description" content="Play the retro classic Neon Snake game with a real-time local leaderboard. Grow your snake, avoid walls, speed up, and compete for the top score!" />
     
     <!-- Google Fonts: Orbitron (Arcade) and Inter (Clean text) -->
@@ -15,36 +15,55 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div id="app">
+    <div id="app" class="app-layout">
+      <!-- App Header Area -->
       <header class="app-header">
-        <h1 class="logo-text">NEON <span class="accent-text">SNAKE</span> ARCADE</h1>
-        <p class="app-description">
-          A modular browser-based arcade classic. Navigate the grid, devour energy cores, speed up, and rank on the leaderboards!
-        </p>
+        <div class="header-top">
+          <div class="status-badges left-badges">
+            <span class="badge status-live"><span class="badge-dot"></span> LOCAL ARCADE</span>
+            <span class="badge status-input"><span class="badge-dot"></span> KEYBOARD READY</span>
+          </div>
+          <h1 class="logo-text">NEON <span class="accent-text">SNAKE</span></h1>
+          <div class="status-badges right-badges">
+            <span class="badge status-storage"><span class="badge-dot"></span> OFFLINE SCORES</span>
+          </div>
+        </div>
+        
+        <!-- Tab Navigation Bar -->
+        <nav class="app-nav">
+          <button class="nav-btn active" data-target="tab-arcade" aria-label="Arcade Game Tab">🕹️ ARCADE</button>
+          <button class="nav-btn" data-target="tab-leaderboard" aria-label="Leaderboard Tab">🏆 LEADERBOARD</button>
+          <button class="nav-btn" data-target="tab-controls" aria-label="Controls and Help Tab">❓ CONTROLS</button>
+        </nav>
       </header>
 
-      <main class="game-container">
-        <!-- Left Column: The Arcade Cabinet -->
-        <section class="cabinet-section">
+      <!-- App Main Content Area (Tabs Container) -->
+      <main class="app-main">
+        <!-- 1. Arcade Game Tab -->
+        <section id="tab-arcade" class="tab-content active" data-tab-content>
           <div class="cabinet-frame">
-            <!-- Screen Header Info (Scores) -->
+            <!-- HUD -->
             <div class="cabinet-score-bar">
               <div class="score-box">
                 <span class="score-label">SCORE</span>
-                <span id="score-value" class="score-digital">0000</span>
+                <span id="score-value" class="score-digital">0</span>
               </div>
-              <div class="score-box">
+              <div class="score-box text-center">
+                <span class="score-label">SPEED</span>
+                <span id="speed-value" class="score-digital">LVL 1</span>
+              </div>
+              <div class="score-box text-right">
                 <span class="score-label">HI-SCORE</span>
-                <span id="best-score-value" class="score-digital">0000</span>
+                <span id="best-score-value" class="score-digital">0</span>
               </div>
             </div>
 
-            <!-- The Game Screen -->
+            <!-- Screen Bezel / Canvas -->
             <div class="canvas-wrapper">
               <canvas id="game-canvas"></canvas>
             </div>
 
-            <!-- Arcade Controls Panel -->
+            <!-- Console Controls Buttons -->
             <div class="cabinet-controls">
               <button id="play-pause-btn" class="arcade-btn primary-btn" title="Toggle Play / Pause (Spacebar)">
                 <span class="icon">▶</span> Play / Pause
@@ -53,13 +72,28 @@
                 <span class="icon">⟳</span> Restart
               </button>
             </div>
+
+            <!-- Mobile/Touch D-pad Controller (only visible on mobile/touch viewports) -->
+            <div class="dpad-wrapper arcade-dpad">
+              <div class="dpad">
+                <button id="ctrl-up" class="dpad-btn up" aria-label="Move Up">▲</button>
+                <button id="ctrl-left" class="dpad-btn left" aria-label="Move Left">◀</button>
+                <div class="dpad-center"></div>
+                <button id="ctrl-right" class="dpad-btn right" aria-label="Move Right">▶</button>
+                <button id="ctrl-down" class="dpad-btn down" aria-label="Move Down">▼</button>
+              </div>
+            </div>
+            
+            <div class="quick-help-text">
+              Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>▲</kbd> keys. Press <kbd>Space</kbd> to Pause.
+            </div>
           </div>
         </section>
 
-        <!-- Right Column: High Scores / Leaderboard -->
-        <section class="leaderboard-section">
+        <!-- 2. Leaderboard Tab -->
+        <section id="tab-leaderboard" class="tab-content" data-tab-content>
           <div class="arcade-panel">
-            <h2 class="panel-title"><span class="icon">🏆</span> LEADERBOARD</h2>
+            <h2 class="panel-title"><span class="icon">🏆</span> HIGH SCORES</h2>
             <div class="table-wrapper">
               <table class="leaderboard-table">
                 <thead>
@@ -84,35 +118,41 @@
             </div>
           </div>
         </section>
-      </main>
 
-      <!-- Bottom Panel: Controls & Help -->
-      <section class="info-container">
-        <!-- Keyboard & Touch Controls -->
-        <div class="controls-panel card-panel">
-          <h3>CONTROLS</h3>
-          <div class="controls-layout">
-            <div class="kbd-instructions">
-              <p><strong>Keyboard:</strong> Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>▲</kbd><kbd>◀</kbd><kbd>▼</kbd><kbd>▶</kbd> to move.</p>
-              <p>Press <kbd>Space</kbd> to Pause/Resume, or to Restart after a Game Over.</p>
-            </div>
-            <div class="dpad-wrapper">
-              <p class="dpad-title">Touch Controls</p>
-              <div class="dpad">
-                <button id="ctrl-up" class="dpad-btn up" aria-label="Move Up">▲</button>
-                <button id="ctrl-left" class="dpad-btn left" aria-label="Move Left">◀</button>
-                <div class="dpad-center"></div>
-                <button id="ctrl-right" class="dpad-btn right" aria-label="Move Right">▶</button>
-                <button id="ctrl-down" class="dpad-btn down" aria-label="Move Down">▼</button>
+        <!-- 3. Controls / Help Tab -->
+        <section id="tab-controls" class="tab-content" data-tab-content>
+          <div class="card-panel help-panel">
+            <h2 class="panel-title"><span class="icon">🕹️</span> CONTROLS & INFO</h2>
+            
+            <div class="help-sections">
+              <div class="help-column">
+                <h4>Rules of the Game</h4>
+                <ul class="help-list">
+                  <li>Devour glowing red energy cores to score points and grow longer.</li>
+                  <li>Each eaten core increases the speed level, making movement faster.</li>
+                  <li>Colliding with walls or eating your own tail results in an instant <strong>GAME OVER</strong>.</li>
+                  <li>Entering a top 10 score prompts you to save your name to the local leaderboard.</li>
+                </ul>
+              </div>
+
+              <div class="help-column">
+                <h4>Desktop Key Bindings</h4>
+                <div class="kbd-guide">
+                  <p><kbd>W</kbd> or <kbd>▲</kbd> : Move Up</p>
+                  <p><kbd>A</kbd> or <kbd>◀</kbd> : Move Left</p>
+                  <p><kbd>S</kbd> or <kbd>▼</kbd> : Move Down</p>
+                  <p><kbd>D</kbd> or <kbd>▶</kbd> : Move Right</p>
+                  <p><kbd>Space</kbd> : Pause / Resume, or Restart at Game Over</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
+      <!-- App Footer Area -->
       <footer class="app-footer">
-        <p>Neon Snake Arcade © 2026. Made with Vite & TypeScript.</p>
-        <p class="cloudflare-tag">Designed for deployment on <span class="cf-badge">Cloudflare Pages</span></p>
+        <p>Neon Snake Arcade © 2026. Designed for <span class="cf-badge">Cloudflare Pages</span></p>
       </footer>
 
       <!-- Submit Score Overlay Modal -->
@@ -129,7 +169,7 @@
                 <input 
                   type="text" 
                   id="player-name-input" 
-                  maxlength="15" 
+                  maxlength="12" 
                   placeholder="PLAYER" 
                   required 
                   autocomplete="off"

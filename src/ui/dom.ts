@@ -31,6 +31,11 @@ export function updateBestScoreDisplay(score: number): void {
   if (el) el.textContent = String(score);
 }
 
+export function updateSpeedDisplay(level: number): void {
+  const el = document.getElementById('speed-value');
+  if (el) el.textContent = `LVL ${level}`;
+}
+
 export function togglePlayPauseBtn(isPaused: boolean): void {
   const btn = document.getElementById('play-pause-btn');
   if (btn) {
