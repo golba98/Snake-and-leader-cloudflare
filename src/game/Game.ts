@@ -3,11 +3,11 @@ import { Food } from './Food.ts';
 import { InputController } from './InputController.ts';
 import { Renderer } from './Renderer.ts';
 import { Leaderboard } from '../leaderboard/Leaderboard.ts';
+import { SoundEffects } from './Sound.ts';
 import type { GameState } from './types.ts';
 import { 
-  INITIAL_SPEED, 
-  MIN_SPEED, 
-  SPEED_DECREMENT, 
+  DIFFICULTY_CONFIGS, 
+  type Difficulty, 
   STORAGE_BEST_SCORE_KEY 
 } from './constants.ts';
 import { 
@@ -24,10 +24,15 @@ export class Game {
   private input: InputController;
   private renderer: Renderer;
   private leaderboard: Leaderboard;
+  private sound: SoundEffects;
 
   private state!: GameState;
   private loopId: number | null = null;
   private lastTickTime: number = 0;
+
+  private difficulty: Difficulty = 'medium';
+  private isReadyState: boolean = true;
+  private isSubmittingScore: boolean = false;
 
   constructor(canvas: HTMLCanvasElement, leaderboard: Leaderboard) {
     this.snake = new Snake();
@@ -35,10 +40,28 @@ export class Game {
     this.input = new InputController();
     this.renderer = new Renderer(canvas);
     this.leaderboard = leaderboard;
+    this.sound = new SoundEffects();
+
+    // Load difficulty preference
+    try {
+      const savedDiff = localStorage.getItem('snake_arcade_difficulty') as Difficulty;
+      if (savedDiff && DIFFICULTY_CONFIGS[savedDiff]) {
+        this.difficulty = savedDiff;
+      }
+    } catch {
+      this.difficulty = 'medium';
+    }
 
     this.initBestScore();
     this.reset();
     this.bindGlobalKeys();
+    this.updateSoundButtonUI();
+
+    // Sync dropdown value on load
+    const dom = getDOM();
+    if (dom.difficultySelect) {
+      dom.difficultySelect.value = this.difficulty;
+    }
   }
 
   private initBestScore(): void {
@@ -52,7 +75,7 @@ export class Game {
       bestScore: saved ? parseInt(saved, 10) : 0,
       isPaused: false,
       isGameOver: false,
-      speed: INITIAL_SPEED,
+      speed: DIFFICULTY_CONFIGS[this.difficulty].initialSpeed,
     };
     updateBestScoreDisplay(this.state.bestScore);
     updateSpeedDisplay(1);
@@ -63,6 +86,9 @@ export class Game {
     this.food.spawn(this.snake);
     this.input.reset();
 
+    this.isReadyState = true;
+    this.isSubmittingScore = false;
+
     this.state.snake = this.snake.getBody();
     this.state.direction = this.snake.getDirection();
     this.state.nextDirection = this.snake.getDirection();
@@ -70,11 +96,15 @@ export class Game {
     this.state.score = 0;
     this.state.isPaused = false;
     this.state.isGameOver = false;
-    this.state.speed = INITIAL_SPEED;
+    
+    // Set initial speed based on current difficulty
+    this.state.speed = DIFFICULTY_CONFIGS[this.difficulty].initialSpeed;
 
     updateScoreDisplay(0);
     updateSpeedDisplay(1);
-    togglePlayPauseBtn(false);
+    togglePlayPauseBtn(false, true); // paused=false, ready=true
+
+    this.updateOverlays();
 
     this.lastTickTime = performance.now();
     this.renderer.draw(this.snake, this.food, this.state.isPaused, this.state.isGameOver);
@@ -93,10 +123,20 @@ export class Game {
     }
   }
 
+  public startGame(): void {
+    if (!this.isReadyState) return;
+    this.isReadyState = false;
+    this.state.isPaused = false;
+    this.state.isGameOver = false;
+    togglePlayPauseBtn(false, false);
+    this.updateOverlays();
+    this.sound.playClick();
+  }
+
   private loop(timestamp: number): void {
     if (!this.loopId) return;
 
-    if (this.state.isGameOver || this.state.isPaused) {
+    if (this.state.isGameOver || this.state.isPaused || this.isReadyState) {
       this.renderer.draw(this.snake, this.food, this.state.isPaused, this.state.isGameOver);
       this.loopId = requestAnimationFrame((t) => this.loop(t));
       return;
@@ -142,12 +182,18 @@ export class Game {
     }
 
     if (eatsFood) {
+      this.sound.playEat();
+      
       this.state.score += 10;
       updateScoreDisplay(this.state.score);
 
-      // Decrement frame interval per eaten food, capped at MIN_SPEED (speed ceiling)
+      // Decrement tick speed per score, capped at current difficulty minSpeed limit
       const speedFactor = Math.floor(this.state.score / 10);
-      this.state.speed = Math.max(MIN_SPEED, INITIAL_SPEED - speedFactor * SPEED_DECREMENT);
+      const config = DIFFICULTY_CONFIGS[this.difficulty];
+      this.state.speed = Math.max(
+        config.minSpeed, 
+        config.initialSpeed - speedFactor * config.speedDecrement
+      );
       updateSpeedDisplay(speedFactor + 1);
 
       this.food.spawn(this.snake);
@@ -159,6 +205,7 @@ export class Game {
 
   private handleGameOver(): void {
     this.state.isGameOver = true;
+    this.sound.playGameOver();
 
     if (this.state.score > this.state.bestScore) {
       this.state.bestScore = this.state.score;
@@ -168,15 +215,27 @@ export class Game {
 
     this.leaderboard.getStorage().qualifiesForLeaderboard(this.state.score).then(qualifies => {
       if (qualifies) {
+        this.isSubmittingScore = true;
         this.showSubmitScoreModal();
+      } else {
+        this.isSubmittingScore = false;
       }
+      this.updateOverlays();
     });
   }
 
   public togglePause(): void {
     if (this.state.isGameOver) return;
+    
+    if (this.isReadyState) {
+      this.startGame();
+      return;
+    }
+
     this.state.isPaused = !this.state.isPaused;
-    togglePlayPauseBtn(this.state.isPaused);
+    togglePlayPauseBtn(this.state.isPaused, false);
+    this.sound.playPause();
+    this.updateOverlays();
   }
 
   public isPaused(): boolean {
@@ -187,6 +246,10 @@ export class Game {
     return this.state.isGameOver;
   }
 
+  public isReady(): boolean {
+    return this.isReadyState;
+  }
+
   public getInputController(): InputController {
     return this.input;
   }
@@ -195,25 +258,108 @@ export class Game {
     return this.state.score;
   }
 
+  public changeDifficulty(newDiff: Difficulty): void {
+    if (DIFFICULTY_CONFIGS[newDiff]) {
+      this.difficulty = newDiff;
+      try {
+        localStorage.setItem('snake_arcade_difficulty', newDiff);
+      } catch (e) {
+        console.warn('Could not save difficulty:', e);
+      }
+      this.reset();
+    }
+  }
+
+  public toggleMute(): boolean {
+    const isMuted = this.sound.toggleMute();
+    this.sound.playClick();
+    this.updateSoundButtonUI();
+    return isMuted;
+  }
+
+  public cancelSubmit(): void {
+    this.isSubmittingScore = false;
+    this.sound.playClick();
+    this.updateOverlays();
+  }
+
+  public playClick(): void {
+    this.sound.playClick();
+  }
+
+  private updateSoundButtonUI(): void {
+    const dom = getDOM();
+    if (dom.soundBtn) {
+      const isMuted = this.sound.isMuted();
+      dom.soundBtn.innerHTML = isMuted 
+        ? '<span class="icon">🔇</span> MUTED' 
+        : '<span class="icon">🔊</span> SOUND';
+      if (isMuted) {
+        dom.soundBtn.classList.add('muted');
+      } else {
+        dom.soundBtn.classList.remove('muted');
+      }
+    }
+  }
+
   private showSubmitScoreModal(): void {
     const dom = getDOM();
-    if (dom.submitScoreModal && dom.finalScoreDisplay && dom.playerNameInput) {
+    if (dom.finalScoreDisplay && dom.playerNameInput) {
       dom.finalScoreDisplay.textContent = String(this.state.score);
       dom.playerNameInput.value = '';
-      dom.submitScoreModal.classList.add('visible');
-      dom.playerNameInput.focus();
+      
+      // Auto focus input
+      setTimeout(() => {
+        dom.playerNameInput.focus();
+      }, 50);
+    }
+  }
+
+  private updateOverlays(): void {
+    const dom = getDOM();
+    
+    // Remove visible from all overlays
+    dom.readyOverlay?.classList.remove('visible');
+    dom.pauseOverlay?.classList.remove('visible');
+    dom.gameOverOverlay?.classList.remove('visible');
+    dom.submitScoreOverlay?.classList.remove('visible');
+
+    if (this.state.isGameOver) {
+      if (this.isSubmittingScore) {
+        dom.submitScoreOverlay?.classList.add('visible');
+      } else {
+        if (dom.gameOverScore) {
+          dom.gameOverScore.textContent = String(this.state.score);
+        }
+        dom.gameOverOverlay?.classList.add('visible');
+      }
+    } else if (this.state.isPaused) {
+      dom.pauseOverlay?.classList.add('visible');
+    } else if (this.isReadyState) {
+      dom.readyOverlay?.classList.add('visible');
     }
   }
 
   private bindGlobalKeys(): void {
     window.addEventListener('keydown', (e) => {
+      // Spacebar bindings
       if (e.key === ' ' && document.activeElement !== getDOM().playerNameInput) {
         e.preventDefault();
         if (this.state.isGameOver) {
           this.reset();
+        } else if (this.isReadyState) {
+          this.startGame();
         } else {
           this.togglePause();
         }
+      }
+
+      // Movement keys start the game if in Ready state
+      if (this.isReadyState && [
+        'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 
+        'w', 'W', 's', 'S', 'a', 'A', 'd', 'D'
+      ].includes(e.key)) {
+        this.startGame();
       }
     });
   }
