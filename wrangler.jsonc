@@ -1,0 +1,8 @@
+{
+  // Cloudflare Pages — static asset deployment config
+  "name": "neon-snake-arcade",
+  "compatibility_date": "2026-06-02",
+  "assets": {
+    "directory": "./dist"
+  }
+}
