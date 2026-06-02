@@ -21,7 +21,9 @@ export class Renderer {
 
   public resize(): void {
     const parent = this.canvas.parentElement;
-    const size = parent ? Math.min(parent.clientWidth - 32, 400) : 400;
+    const isDesktop = window.innerWidth >= 1024;
+    const maxCanvasSize = isDesktop ? 450 : 400;
+    const size = parent ? Math.min(parent.clientWidth - 32, maxCanvasSize) : maxCanvasSize;
     this.displayWidth = size;
     this.displayHeight = size;
 
@@ -37,7 +39,14 @@ export class Renderer {
     this.ctx.scale(dpr, dpr);
   }
 
-  public draw(snake: Snake, food: Food, isPaused: boolean, isGameOver: boolean): void {
+  public draw(
+    snake: Snake,
+    food: Food,
+    isPaused: boolean,
+    isGameOver: boolean,
+    isReady: boolean,
+    score: number
+  ): void {
     // 1. Clear background
     this.ctx.fillStyle = '#0f111a'; // Dark arcade background
     this.ctx.fillRect(0, 0, this.displayWidth, this.displayHeight);
@@ -137,9 +146,13 @@ export class Renderer {
 
     // 5. Draw status overlays
     if (isGameOver) {
-      this.drawTextOverlay('GAME OVER', 'Press Space or Click Restart', '#ef4444');
+      this.drawTextOverlay('GAME OVER', `Score: ${score}  •  Press Space to Restart`, '#ef4444');
+    } else if (isReady) {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const blink = prefersReducedMotion ? true : Math.floor(performance.now() / 600) % 2 === 0;
+      this.drawTextOverlay('NEON SNAKE', blink ? 'Press Space or Arrow Keys to Play' : ' ', '#10b981');
     } else if (isPaused) {
-      this.drawTextOverlay('PAUSED', 'Press Space or Resume', '#3b82f6');
+      this.drawTextOverlay('PAUSED', 'Press Space or Resume to Play', '#3b82f6');
     }
   }
 
@@ -155,7 +168,7 @@ export class Renderer {
     }
 
     // 3. Central glowing panel
-    const boxW = this.displayWidth * 0.8;
+    const boxW = this.displayWidth * 0.85;
     const boxH = 120;
     const boxX = (this.displayWidth - boxW) / 2;
     const boxY = (this.displayHeight - boxH) / 2;
@@ -195,4 +208,5 @@ export class Renderer {
     this.ctx.textBaseline = 'middle';
     this.ctx.fillText(subtitle, this.displayWidth / 2, this.displayHeight / 2 + 24);
   }
+
 }
