@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Meta tags for SEO -->
+    <title>Neon Snake Arcade - Play Free Retro Game Online</title>
+    <meta name="description" content="Play the retro classic Neon Snake game with a real-time local leaderboard. Grow your snake, avoid walls, speed up, and compete for the top score!" />
+    
+    <!-- Google Fonts: Orbitron (Arcade) and Inter (Clean text) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <header class="app-header">
+        <h1 class="logo-text">NEON <span class="accent-text">SNAKE</span> ARCADE</h1>
+        <p class="app-description">
+          A modular browser-based arcade classic. Navigate the grid, devour energy cores, speed up, and rank on the leaderboards!
+        </p>
+      </header>
+
+      <main class="game-container">
+        <!-- Left Column: The Arcade Cabinet -->
+        <section class="cabinet-section">
+          <div class="cabinet-frame">
+            <!-- Screen Header Info (Scores) -->
+            <div class="cabinet-score-bar">
+              <div class="score-box">
+                <span class="score-label">SCORE</span>
+                <span id="score-value" class="score-digital">0000</span>
+              </div>
+              <div class="score-box">
+                <span class="score-label">HI-SCORE</span>
+                <span id="best-score-value" class="score-digital">0000</span>
+              </div>
+            </div>
+
+            <!-- The Game Screen -->
+            <div class="canvas-wrapper">
+              <canvas id="game-canvas"></canvas>
+            </div>
+
+            <!-- Arcade Controls Panel -->
+            <div class="cabinet-controls">
+              <button id="play-pause-btn" class="arcade-btn primary-btn" title="Toggle Play / Pause (Spacebar)">
+                <span class="icon">▶</span> Play / Pause
+              </button>
+              <button id="restart-btn" class="arcade-btn danger-btn" title="Reset Game (Spacebar at Game Over)">
+                <span class="icon">⟳</span> Restart
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Column: High Scores / Leaderboard -->
+        <section class="leaderboard-section">
+          <div class="arcade-panel">
+            <h2 class="panel-title"><span class="icon">🏆</span> LEADERBOARD</h2>
+            <div class="table-wrapper">
+              <table class="leaderboard-table">
+                <thead>
+                  <tr>
+                    <th class="rank-col">Rank</th>
+                    <th class="name-col">Player</th>
+                    <th class="score-col">Score</th>
+                    <th class="date-col">Date</th>
+                  </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                  <tr>
+                    <td colspan="4" class="empty-leaderboard">Loading scores...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="panel-actions">
+              <button id="clear-leaderboard-btn" class="btn-text" title="Reset local leaderboard">
+                Clear Leaderboard
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Bottom Panel: Controls & Help -->
+      <section class="info-container">
+        <!-- Keyboard & Touch Controls -->
+        <div class="controls-panel card-panel">
+          <h3>CONTROLS</h3>
+          <div class="controls-layout">
+            <div class="kbd-instructions">
+              <p><strong>Keyboard:</strong> Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>▲</kbd><kbd>◀</kbd><kbd>▼</kbd><kbd>▶</kbd> to move.</p>
+              <p>Press <kbd>Space</kbd> to Pause/Resume, or to Restart after a Game Over.</p>
+            </div>
+            <div class="dpad-wrapper">
+              <p class="dpad-title">Touch Controls</p>
+              <div class="dpad">
+                <button id="ctrl-up" class="dpad-btn up" aria-label="Move Up">▲</button>
+                <button id="ctrl-left" class="dpad-btn left" aria-label="Move Left">◀</button>
+                <div class="dpad-center"></div>
+                <button id="ctrl-right" class="dpad-btn right" aria-label="Move Right">▶</button>
+                <button id="ctrl-down" class="dpad-btn down" aria-label="Move Down">▼</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <p>Neon Snake Arcade © 2026. Made with Vite & TypeScript.</p>
+        <p class="cloudflare-tag">Designed for deployment on <span class="cf-badge">Cloudflare Pages</span></p>
+      </footer>
+
+      <!-- Submit Score Overlay Modal -->
+      <div id="submit-score-modal" class="modal-overlay">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>NEW HIGH SCORE!</h3>
+          </div>
+          <div class="modal-body">
+            <p>You scored <span id="final-score-display" class="modal-score">0</span> points!</p>
+            <form id="submit-score-form">
+              <div class="form-group">
+                <label for="player-name-input">Enter your name:</label>
+                <input 
+                  type="text" 
+                  id="player-name-input" 
+                  maxlength="15" 
+                  placeholder="PLAYER" 
+                  required 
+                  autocomplete="off"
+                />
+              </div>
+              <div class="modal-actions">
+                <button type="button" id="cancel-submit-btn" class="arcade-btn secondary-btn">Cancel</button>
+                <button type="submit" class="arcade-btn accent-btn">Submit</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
