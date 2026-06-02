@@ -18,6 +18,14 @@ dom.playPauseBtn?.addEventListener('click', () => {
   game.togglePause();
 });
 
+dom.difficultyBtn?.addEventListener('click', () => {
+  game.cycleDifficulty();
+});
+
+dom.soundBtn?.addEventListener('click', () => {
+  game.toggleMute();
+});
+
 dom.restartBtn?.addEventListener('click', () => {
   game.reset();
 });

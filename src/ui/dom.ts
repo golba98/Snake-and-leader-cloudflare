@@ -4,6 +4,8 @@ export const getDOM = () => ({
   bestScore: document.getElementById('best-score-value') as HTMLSpanElement,
   playPauseBtn: document.getElementById('play-pause-btn') as HTMLButtonElement,
   restartBtn: document.getElementById('restart-btn') as HTMLButtonElement,
+  difficultyBtn: document.getElementById('difficulty-btn') as HTMLButtonElement,
+  soundBtn: document.getElementById('sound-btn') as HTMLButtonElement,
   clearLeaderboardBtn: document.getElementById('clear-leaderboard-btn') as HTMLButtonElement,
   leaderboardBody: document.getElementById('leaderboard-body') as HTMLTableSectionElement,
   
@@ -36,16 +38,45 @@ export function updateSpeedDisplay(level: number): void {
   if (el) el.textContent = `LVL ${level}`;
 }
 
-export function togglePlayPauseBtn(isPaused: boolean): void {
+export function updatePlayPauseBtnState(state: 'PLAY' | 'PAUSE' | 'RESUME'): void {
   const btn = document.getElementById('play-pause-btn');
+  if (!btn) return;
+  
+  if (state === 'PLAY') {
+    btn.innerHTML = '<span class="icon">▶</span> Play';
+    btn.className = 'arcade-btn primary-btn';
+  } else if (state === 'PAUSE') {
+    btn.innerHTML = '<span class="icon">⏸</span> Pause';
+    btn.className = 'arcade-btn primary-btn';
+  } else if (state === 'RESUME') {
+    btn.innerHTML = '<span class="icon">▶</span> Resume';
+    btn.className = 'arcade-btn primary-btn paused';
+  }
+}
+
+export function togglePlayPauseBtn(isPaused: boolean): void {
+  updatePlayPauseBtnState(isPaused ? 'RESUME' : 'PAUSE');
+}
+
+export function updateDifficultyBtn(label: string, color: string): void {
+  const btn = document.getElementById('difficulty-btn');
   if (btn) {
-    btn.innerHTML = isPaused 
-      ? '<span class="icon">▶</span> Resume' 
-      : '<span class="icon">⏸</span> Pause';
-    if (isPaused) {
-      btn.classList.add('paused');
+    btn.innerHTML = `⚙️ ${label}`;
+    btn.style.setProperty('--btn-glow', color);
+  }
+}
+
+export function updateSoundBtn(isMuted: boolean): void {
+  const btn = document.getElementById('sound-btn');
+  if (btn) {
+    btn.innerHTML = isMuted 
+      ? '<span class="icon">🔇</span> Muted' 
+      : '<span class="icon">🔊</span> Sound';
+    if (isMuted) {
+      btn.className = 'arcade-btn sound-btn muted';
     } else {
-      btn.classList.remove('paused');
+      btn.className = 'arcade-btn sound-btn';
     }
   }
 }
+

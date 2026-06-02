@@ -4,6 +4,7 @@ export interface Position {
 }
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
 export interface GameState {
   snake: Position[];
@@ -14,5 +15,8 @@ export interface GameState {
   bestScore: number;
   isPaused: boolean;
   isGameOver: boolean;
+  isReady: boolean;
   speed: number;
+  difficulty: Difficulty;
 }
+
