@@ -23,20 +23,18 @@ export class Renderer {
     const parent = this.canvas.parentElement;
     if (!parent) return;
 
-    // Calculate maximum available square fitting the parent container, capped at 600px
-    const width = parent.clientWidth - 4;
-    const height = parent.clientHeight - 4;
-    const size = Math.max(250, Math.min(width, height, 600));
-    
-    this.displayWidth = size;
+    const width  = parent.clientWidth;
+    const height = parent.clientHeight;
+    const size   = Math.max(200, Math.min(width, height, 640));
+
+    this.displayWidth  = size;
     this.displayHeight = size;
 
-    // Apply high-DPI scaling
     const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = this.displayWidth * dpr;
+    this.canvas.width  = this.displayWidth * dpr;
     this.canvas.height = this.displayHeight * dpr;
-    
-    this.canvas.style.width = `${this.displayWidth}px`;
+
+    this.canvas.style.width  = `${this.displayWidth}px`;
     this.canvas.style.height = `${this.displayHeight}px`;
 
     this.ctx.resetTransform();
@@ -44,67 +42,109 @@ export class Renderer {
   }
 
   public draw(snake: Snake, food: Food, _isPaused: boolean, _isGameOver: boolean): void {
-    // 1. Clear background
-    this.ctx.fillStyle = '#0f111a'; // Dark arcade background
-    this.ctx.fillRect(0, 0, this.displayWidth, this.displayHeight);
+    const W = this.displayWidth;
+    const H = this.displayHeight;
+    const cw = W / GRID_WIDTH;
+    const ch = H / GRID_HEIGHT;
 
-    // 2. Draw grid lines
-    const cellWidth = this.displayWidth / GRID_WIDTH;
-    const cellHeight = this.displayHeight / GRID_HEIGHT;
+    // ── 1. Board background ──────────────────────────────────────────────────
+    // Deep space fill
+    this.ctx.fillStyle = '#060810';
+    this.ctx.fillRect(0, 0, W, H);
 
-    this.ctx.strokeStyle = '#1e2235';
+    // Subtle radial centre glow — gives depth without clutter
+    const cx = W / 2;
+    const cy = H / 2;
+    const glow = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.72);
+    glow.addColorStop(0,   'rgba(6, 16, 38, 0.55)');
+    glow.addColorStop(0.5, 'rgba(4, 8, 20, 0.2)');
+    glow.addColorStop(1,   'rgba(0, 0, 0, 0)');
+    this.ctx.fillStyle = glow;
+    this.ctx.fillRect(0, 0, W, H);
+
+    // ── 2. Grid ──────────────────────────────────────────────────────────────
+    this.ctx.strokeStyle = 'rgba(30, 40, 72, 0.55)';
     this.ctx.lineWidth = 0.5;
+
     for (let x = 0; x <= GRID_WIDTH; x++) {
       this.ctx.beginPath();
-      this.ctx.moveTo(x * cellWidth, 0);
-      this.ctx.lineTo(x * cellWidth, this.displayHeight);
+      this.ctx.moveTo(Math.round(x * cw) + 0.5, 0);
+      this.ctx.lineTo(Math.round(x * cw) + 0.5, H);
       this.ctx.stroke();
     }
     for (let y = 0; y <= GRID_HEIGHT; y++) {
       this.ctx.beginPath();
-      this.ctx.moveTo(0, y * cellHeight);
-      this.ctx.lineTo(this.displayWidth, y * cellHeight);
+      this.ctx.moveTo(0, Math.round(y * ch) + 0.5);
+      this.ctx.lineTo(W, Math.round(y * ch) + 0.5);
       this.ctx.stroke();
     }
 
-    // 3. Draw food (glowing red apple/sphere)
+    // ── 3. Food ──────────────────────────────────────────────────────────────
     const foodPos = food.getPosition();
-    const foodX = foodPos.x * cellWidth + cellWidth / 2;
-    const foodY = foodPos.y * cellHeight + cellHeight / 2;
-    const foodRadius = Math.min(cellWidth, cellHeight) / 2.5;
+    const fx = foodPos.x * cw + cw / 2;
+    const fy = foodPos.y * ch + ch / 2;
+    const fr = Math.min(cw, ch) / 2.6;
 
     this.ctx.save();
-    this.ctx.shadowBlur = 12;
-    this.ctx.shadowColor = '#ef4444';
-    this.ctx.fillStyle = '#f87171'; // Glowing red-pink
+
+    // Outer glow pulse via layered shadows
+    this.ctx.shadowBlur = 20;
+    this.ctx.shadowColor = '#f04545';
+    this.ctx.fillStyle = '#f04545';
     this.ctx.beginPath();
-    this.ctx.arc(foodX, foodY, foodRadius, 0, Math.PI * 2);
+    this.ctx.arc(fx, fy, fr, 0, Math.PI * 2);
     this.ctx.fill();
+
+    // Inner bright core
+    this.ctx.shadowBlur = 0;
+    const foodGrad = this.ctx.createRadialGradient(fx - fr * 0.3, fy - fr * 0.3, 0, fx, fy, fr);
+    foodGrad.addColorStop(0, '#ffa0a0');
+    foodGrad.addColorStop(0.5, '#f87171');
+    foodGrad.addColorStop(1, '#c42020');
+    this.ctx.fillStyle = foodGrad;
+    this.ctx.beginPath();
+    this.ctx.arc(fx, fy, fr, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Specular highlight
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    this.ctx.beginPath();
+    this.ctx.arc(fx - fr * 0.28, fy - fr * 0.28, fr * 0.28, 0, Math.PI * 2);
+    this.ctx.fill();
+
     this.ctx.restore();
 
-    // 4. Draw snake (neon green)
+    // ── 4. Snake ─────────────────────────────────────────────────────────────
     const snakeBody = snake.getBody();
+    const len = snakeBody.length;
+
     this.ctx.save();
-    this.ctx.shadowBlur = 8;
-    this.ctx.shadowColor = '#10b981';
 
     snakeBody.forEach((segment, index) => {
       const isHead = index === 0;
-      
+      const pad = isHead ? 1 : 1.5;
+      const x = segment.x * cw + pad;
+      const y = segment.y * ch + pad;
+      const w = cw - pad * 2;
+      const h = ch - pad * 2;
+      const r = isHead ? 5 : 3;
+
+      // Fade body towards tail
+      const alpha = isHead ? 1 : Math.max(0.25, 1 - (index / (len + 3)) * 0.85);
+
       if (isHead) {
-        this.ctx.fillStyle = '#10b981'; // Primary emerald
+        // Head: bright emerald with glow
+        this.ctx.shadowBlur  = 14;
+        this.ctx.shadowColor = 'rgba(15, 186, 129, 0.8)';
+        this.ctx.fillStyle   = '#0fba81';
       } else {
-        const alpha = Math.max(0.3, 1 - index / (snakeBody.length + 2));
-        this.ctx.fillStyle = `rgba(52, 211, 153, ${alpha})`; // Fading neon green-teal
+        // Body: fading teal-green
+        this.ctx.shadowBlur  = 6;
+        this.ctx.shadowColor = `rgba(15, 186, 129, ${alpha * 0.5})`;
+        this.ctx.fillStyle   = `rgba(16, 200, 150, ${alpha})`;
       }
 
-      const padding = 1.5;
-      const x = segment.x * cellWidth + padding;
-      const y = segment.y * cellHeight + padding;
-      const w = cellWidth - padding * 2;
-      const h = cellHeight - padding * 2;
-      const r = isHead ? 5 : 3; // rounded corner radius
-
+      // Rounded rect path
       this.ctx.beginPath();
       if (typeof this.ctx.roundRect === 'function') {
         this.ctx.roundRect(x, y, w, h, r);
@@ -113,32 +153,54 @@ export class Renderer {
       }
       this.ctx.fill();
 
-      // Draw eyes on the snake head
+      // Inner highlight stripe on body segments
+      if (!isHead && alpha > 0.4) {
+        this.ctx.shadowBlur = 0;
+        this.ctx.fillStyle  = `rgba(255, 255, 255, ${alpha * 0.06})`;
+        this.ctx.beginPath();
+        if (typeof this.ctx.roundRect === 'function') {
+          this.ctx.roundRect(x + 1, y + 1, w - 2, Math.min(3, h * 0.3), 1);
+        } else {
+          this.ctx.rect(x + 1, y + 1, w - 2, Math.min(3, h * 0.3));
+        }
+        this.ctx.fill();
+      }
+
+      // Snake eyes on head
       if (isHead) {
         const dir = snake.getDirection();
-        this.ctx.fillStyle = '#ffffff';
-        const eyeSize = 2.5;
-        let eye1 = { x: 0, y: 0 };
-        let eye2 = { x: 0, y: 0 };
+        this.ctx.shadowBlur = 0;
+        this.ctx.fillStyle  = '#ffffff';
+        const es = 2.2; // eye size
+        let e1 = { x: 0, y: 0 };
+        let e2 = { x: 0, y: 0 };
 
         if (dir === 'RIGHT') {
-          eye1 = { x: x + w - 4, y: y + 3 };
-          eye2 = { x: x + w - 4, y: y + h - 3 - eyeSize };
+          e1 = { x: x + w - 5,      y: y + 3.5       };
+          e2 = { x: x + w - 5,      y: y + h - 3.5 - es };
         } else if (dir === 'LEFT') {
-          eye1 = { x: x + 4, y: y + 3 };
-          eye2 = { x: x + 4, y: y + h - 3 - eyeSize };
+          e1 = { x: x + 5 - es,     y: y + 3.5       };
+          e2 = { x: x + 5 - es,     y: y + h - 3.5 - es };
         } else if (dir === 'UP') {
-          eye1 = { x: x + 3, y: y + 4 };
-          eye2 = { x: x + w - 3 - eyeSize, y: y + 4 };
-        } else if (dir === 'DOWN') {
-          eye1 = { x: x + 3, y: y + h - 4 };
-          eye2 = { x: x + w - 3 - eyeSize, y: y + h - 4 };
+          e1 = { x: x + 3.5,        y: y + 5 - es    };
+          e2 = { x: x + w - 3.5 - es, y: y + 5 - es  };
+        } else { // DOWN
+          e1 = { x: x + 3.5,        y: y + h - 5     };
+          e2 = { x: x + w - 3.5 - es, y: y + h - 5   };
         }
 
-        this.ctx.fillRect(eye1.x, eye1.y, eyeSize, eyeSize);
-        this.ctx.fillRect(eye2.x, eye2.y, eyeSize, eyeSize);
+        this.ctx.fillRect(e1.x, e1.y, es, es);
+        this.ctx.fillRect(e2.x, e2.y, es, es);
       }
     });
+
     this.ctx.restore();
+
+    // ── 5. Edge vignette ─────────────────────────────────────────────────────
+    const vig = this.ctx.createRadialGradient(cx, cy, W * 0.35, cx, cy, W * 0.75);
+    vig.addColorStop(0, 'transparent');
+    vig.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
+    this.ctx.fillStyle = vig;
+    this.ctx.fillRect(0, 0, W, H);
   }
 }

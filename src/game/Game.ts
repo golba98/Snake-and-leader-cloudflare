@@ -317,7 +317,7 @@ export class Game {
 
   private updateOverlays(): void {
     const dom = getDOM();
-    
+
     // Remove visible from all overlays
     dom.readyOverlay?.classList.remove('visible');
     dom.pauseOverlay?.classList.remove('visible');
@@ -330,6 +330,10 @@ export class Game {
       } else {
         if (dom.gameOverScore) {
           dom.gameOverScore.textContent = String(this.state.score);
+        }
+        // Also show hi-score in game-over overlay
+        if (dom.gameOverBest) {
+          dom.gameOverBest.textContent = String(this.state.bestScore);
         }
         dom.gameOverOverlay?.classList.add('visible');
       }

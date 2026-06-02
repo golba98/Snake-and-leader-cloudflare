@@ -4,163 +4,195 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- Meta tags for SEO -->
-    <title>Neon Snake Arcade - Retro Arcade Game Online</title>
-    <meta name="description" content="Play the retro classic Neon Snake game with a real-time local leaderboard. Grow your snake, avoid walls, speed up, and compete for the top score!" />
-    
-    <!-- Google Fonts: Orbitron (Arcade) and Inter (Clean text) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <!-- SEO -->
+    <title>Neon Snake Arcade – Classic Arcade Game Online</title>
+    <meta name="description" content="Play the retro classic Neon Snake in your browser. Grow your snake, devour energy cores, race the clock, and claim the top spot on the local leaderboard!" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="app" class="app-layout">
-      <!-- App Header Area: Sleek and compact single-row design -->
+
+      <!-- ═══════════════════════════════════════════════════
+           HEADER — Compact single-row navigation
+           ═══════════════════════════════════════════════════ -->
       <header class="app-header">
         <div class="header-container">
           <h1 class="logo-text">NEON <span class="accent-text">SNAKE</span></h1>
-          
-          <!-- Tab Navigation Bar -->
-          <nav class="app-nav">
-            <button class="nav-btn active" data-target="tab-arcade" aria-label="Arcade Game Tab">🕹️ PLAY</button>
-            <button class="nav-btn" data-target="tab-leaderboard" aria-label="Leaderboard Tab">🏆 HIGHSCORES</button>
-            <button class="nav-btn" data-target="tab-controls" aria-label="Controls and Help Tab">❓ HELP</button>
+
+          <nav class="app-nav" role="navigation" aria-label="Game sections">
+            <button class="nav-btn active" data-target="tab-arcade"      aria-label="Play game">🕹️ PLAY</button>
+            <button class="nav-btn"        data-target="tab-leaderboard" aria-label="High scores">🏆 SCORES</button>
+            <button class="nav-btn"        data-target="tab-controls"    aria-label="Controls and help">❓ HELP</button>
           </nav>
 
           <div class="header-badge-container">
-            <span class="badge status-live"><span class="badge-dot"></span> LOCAL PLAY</span>
+            <span class="badge status-live"><span class="badge-dot"></span>LOCAL PLAY</span>
           </div>
         </div>
       </header>
 
-      <!-- App Main Content Area (Tabs Container) -->
+      <!-- ═══════════════════════════════════════════════════
+           MAIN CONTENT AREA
+           ═══════════════════════════════════════════════════ -->
       <main class="app-main">
-        <!-- 1. Arcade Game Tab -->
+
+        <!-- ── 1. PLAY TAB ──────────────────────────────── -->
         <section id="tab-arcade" class="tab-content active" data-tab-content>
           <div class="cabinet-frame">
-            <!-- HUD: Responsive top status panel -->
-            <div class="cabinet-score-bar">
+
+            <!-- HUD SCORE BAR -->
+            <div class="cabinet-score-bar" role="status" aria-label="Game HUD">
               <div class="score-box">
                 <span class="score-label">SCORE</span>
-                <span id="score-value" class="score-digital">0</span>
+                <span id="score-value" class="score-digital" aria-live="polite">0</span>
               </div>
-              <div class="score-box text-center">
+              <div class="score-box">
                 <span class="score-label">SPEED</span>
                 <span id="speed-value" class="score-digital">LVL 1</span>
               </div>
-              <div class="score-box text-right">
+              <div class="score-box">
                 <span class="score-label">HI-SCORE</span>
                 <span id="best-score-value" class="score-digital">0</span>
               </div>
             </div>
 
-            <!-- Screen Bezel / Canvas containing all dynamic game status overlays -->
+            <!-- GAME SCREEN / CANVAS BEZEL -->
             <div class="canvas-wrapper">
-              <canvas id="game-canvas"></canvas>
+              <canvas id="game-canvas" aria-label="Snake game board"></canvas>
 
-              <!-- Ready State Overlay -->
-              <div id="ready-overlay" class="canvas-overlay visible">
+              <!-- Ready overlay -->
+              <div id="ready-overlay" class="canvas-overlay visible" role="dialog" aria-modal="true" aria-label="Ready to play">
                 <div class="overlay-panel cyan-border">
                   <h2 class="overlay-title cyan-glow">READY?</h2>
-                  <p class="overlay-subtitle">Press SPACE or click START to play</p>
+                  <p class="overlay-subtitle">Choose difficulty and press start</p>
+                  <p class="overlay-hint">Press <kbd>Space</kbd> or click <strong>Start</strong> below</p>
                 </div>
               </div>
 
-              <!-- Paused State Overlay -->
-              <div id="pause-overlay" class="canvas-overlay">
+              <!-- Paused overlay -->
+              <div id="pause-overlay" class="canvas-overlay" role="dialog" aria-modal="true" aria-label="Game paused">
                 <div class="overlay-panel blue-border">
                   <h2 class="overlay-title blue-glow">PAUSED</h2>
-                  <p class="overlay-subtitle">Press SPACE or click RESUME</p>
+                  <p class="overlay-subtitle">Game is paused</p>
+                  <p class="overlay-hint">Press <kbd>Space</kbd> or click <strong>Resume</strong> to continue</p>
                 </div>
               </div>
 
-              <!-- Game Over State Overlay -->
-              <div id="game-over-overlay" class="canvas-overlay">
+              <!-- Game over overlay -->
+              <div id="game-over-overlay" class="canvas-overlay" role="dialog" aria-modal="true" aria-label="Game over">
                 <div class="overlay-panel red-border">
                   <h2 class="overlay-title red-glow">GAME OVER</h2>
-                  <p class="overlay-subtitle">Final Score: <span id="game-over-score" class="digital-text">0</span></p>
-                  <button id="overlay-restart-btn" class="arcade-btn danger-btn text-bold">PLAY AGAIN</button>
+                  <div class="overlay-score-block">
+                    <div class="overlay-score-row">
+                      <span class="overlay-score-label">FINAL SCORE</span>
+                      <span id="game-over-score" class="overlay-score-value is-red">0</span>
+                    </div>
+                    <div class="overlay-score-row">
+                      <span class="overlay-score-label">HI-SCORE</span>
+                      <span id="game-over-best" class="overlay-score-value is-gold">0</span>
+                    </div>
+                  </div>
+                  <button id="overlay-restart-btn" class="arcade-btn primary-btn" style="width:100%;">
+                    <span class="icon">▶</span> PLAY AGAIN
+                  </button>
+                  <p class="overlay-hint">or press <kbd>Space</kbd></p>
                 </div>
               </div>
 
-              <!-- Submit Score State Overlay (Hidden behind no dark full-page overlay) -->
-              <div id="submit-score-overlay" class="canvas-overlay">
+              <!-- Submit score overlay -->
+              <div id="submit-score-overlay" class="canvas-overlay" role="dialog" aria-modal="true" aria-label="New high score">
                 <div class="overlay-panel green-border">
-                  <h2 class="overlay-title green-glow">NEW HIGH SCORE!</h2>
-                  <p class="overlay-subtitle">You scored <span id="final-score-display" class="digital-text">0</span> points!</p>
-                  <form id="submit-score-form" class="overlay-form">
+                  <h2 class="overlay-title green-glow">NEW RECORD!</h2>
+                  <span class="new-record-badge">⭐ HIGH SCORE</span>
+                  <div class="overlay-score-block">
+                    <div class="overlay-score-row">
+                      <span class="overlay-score-label">YOUR SCORE</span>
+                      <span id="final-score-display" class="overlay-score-value is-green">0</span>
+                    </div>
+                  </div>
+                  <form id="submit-score-form" class="overlay-form" autocomplete="off">
                     <div class="form-group">
-                      <label for="player-name-input">Enter your name:</label>
-                      <input 
-                        type="text" 
-                        id="player-name-input" 
-                        maxlength="12" 
-                        placeholder="YOUR NAME" 
-                        required 
+                      <label for="player-name-input">ENTER YOUR NAME</label>
+                      <input
+                        type="text"
+                        id="player-name-input"
+                        maxlength="12"
+                        placeholder="YOUR NAME"
+                        required
                         autocomplete="off"
+                        spellcheck="false"
                       />
                     </div>
                     <div class="overlay-actions">
                       <button type="button" id="cancel-submit-btn" class="arcade-btn secondary-btn">Cancel</button>
-                      <button type="submit" class="arcade-btn accent-btn">Submit</button>
+                      <button type="submit" class="arcade-btn accent-btn">SUBMIT ★</button>
                     </div>
                   </form>
                 </div>
               </div>
             </div>
+            <!-- /canvas-wrapper -->
 
-            <!-- Console Controls Panel: Blending settings and game actions -->
+            <!-- CONTROLS PANEL -->
             <div class="cabinet-controls">
               <div class="control-row">
-                <button id="play-pause-btn" class="arcade-btn primary-btn" title="Toggle Play / Pause (Spacebar)">
+                <button id="play-pause-btn" class="arcade-btn primary-btn" title="Start / Pause (Space)">
                   <span class="icon">▶</span> Start
                 </button>
-                <button id="restart-btn" class="arcade-btn danger-btn" title="Reset Game (Spacebar at Game Over)">
+                <button id="restart-btn" class="arcade-btn danger-btn" title="Restart game">
                   <span class="icon">⟳</span> Restart
                 </button>
               </div>
 
-              <div class="control-row settings-row">
+              <div class="control-row">
                 <div class="select-wrapper">
                   <label for="difficulty-select" class="control-label">DIFF</label>
-                  <select id="difficulty-select" class="arcade-select" aria-label="Game Difficulty">
+                  <select id="difficulty-select" class="arcade-select" aria-label="Game difficulty">
                     <option value="easy">EASY</option>
                     <option value="medium" selected>MEDIUM</option>
                     <option value="hard">HARD</option>
                     <option value="expert">EXPERT</option>
                   </select>
                 </div>
-
-                <button id="sound-btn" class="arcade-btn sound-btn" title="Toggle sound effects" aria-label="Toggle Sound">
+                <button id="sound-btn" class="arcade-btn sound-btn" title="Toggle sound" aria-label="Toggle sound">
                   <span class="icon">🔊</span> SOUND
                 </button>
               </div>
             </div>
 
-            <!-- Mobile/Touch D-pad Controller (only visible on mobile/touch viewports) -->
+            <!-- D-PAD (mobile only) -->
             <div class="dpad-wrapper arcade-dpad">
-              <div class="dpad">
-                <button id="ctrl-up" class="dpad-btn up" aria-label="Move Up">▲</button>
-                <button id="ctrl-left" class="dpad-btn left" aria-label="Move Left">◀</button>
-                <div class="dpad-center"></div>
-                <button id="ctrl-right" class="dpad-btn right" aria-label="Move Right">▶</button>
-                <button id="ctrl-down" class="dpad-btn down" aria-label="Move Down">▼</button>
+              <div class="dpad" role="group" aria-label="Directional controls">
+                <button id="ctrl-up"    class="dpad-btn up"    aria-label="Move up">▲</button>
+                <button id="ctrl-left"  class="dpad-btn left"  aria-label="Move left">◀</button>
+                <div class="dpad-center" aria-hidden="true"></div>
+                <button id="ctrl-right" class="dpad-btn right" aria-label="Move right">▶</button>
+                <button id="ctrl-down"  class="dpad-btn down"  aria-label="Move down">▼</button>
               </div>
             </div>
-            
-            <div class="quick-help-text">
-              Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>▲</kbd> keys. Press <kbd>Space</kbd> to Pause.
+
+            <!-- Cabinet footer strip -->
+            <div class="cabinet-footer">
+              <span class="quick-help-text">
+                <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>↑↓←→</kbd> to move &nbsp;·&nbsp; <kbd>Space</kbd> to pause
+              </span>
             </div>
+
           </div>
+          <!-- /cabinet-frame -->
         </section>
 
-        <!-- 2. Leaderboard Tab -->
+        <!-- ── 2. LEADERBOARD TAB ───────────────────────── -->
         <section id="tab-leaderboard" class="tab-content" data-tab-content>
           <div class="arcade-panel">
             <h2 class="panel-title"><span class="icon">🏆</span> HIGH SCORES</h2>
             <div class="table-wrapper">
-              <table class="leaderboard-table">
+              <table class="leaderboard-table" aria-label="Local leaderboard">
                 <thead>
                   <tr>
                     <th class="rank-col">Rank</th>
@@ -171,61 +203,57 @@
                 </thead>
                 <tbody id="leaderboard-body">
                   <tr>
-                    <td colspan="4" class="empty-leaderboard">Loading scores...</td>
+                    <td colspan="4" class="empty-leaderboard">No scores yet — play a game!</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            
             <div class="panel-actions">
               <button class="arcade-btn primary-btn back-to-game-btn">🕹️ BACK TO GAME</button>
-              <button id="clear-leaderboard-btn" class="btn-text" title="Reset local leaderboard">
-                Clear Leaderboard
-              </button>
+              <button id="clear-leaderboard-btn" class="btn-text" title="Clear local leaderboard">Clear scores</button>
             </div>
           </div>
         </section>
 
-        <!-- 3. Controls / Help Tab -->
+        <!-- ── 3. HELP TAB ──────────────────────────────── -->
         <section id="tab-controls" class="tab-content" data-tab-content>
           <div class="arcade-panel help-panel">
-            <h2 class="panel-title"><span class="icon">🕹️</span> CONTROLS & INFO</h2>
-            
+            <h2 class="panel-title"><span class="icon">🕹️</span> HOW TO PLAY</h2>
             <div class="help-sections">
               <div class="help-column">
-                <h4>Rules of the Game</h4>
+                <h4>Rules</h4>
                 <ul class="help-list">
-                  <li>Devour glowing red energy cores to score points and grow longer.</li>
-                  <li>Each eaten core increases the speed level, making movement faster.</li>
-                  <li>Colliding with walls or eating your own tail results in an instant <strong>GAME OVER</strong>.</li>
-                  <li>Entering a top 10 score prompts you to save your name to the local leaderboard.</li>
+                  <li>Eat glowing energy cores to score points and grow longer.</li>
+                  <li>Each core eaten increases your speed level.</li>
+                  <li>Hitting a wall or your own tail causes <strong>GAME OVER</strong>.</li>
+                  <li>Top 10 scores are saved to the local leaderboard.</li>
                 </ul>
               </div>
-
               <div class="help-column">
-                <h4>Desktop Key Bindings</h4>
+                <h4>Controls</h4>
                 <div class="kbd-guide">
-                  <p><kbd>W</kbd> or <kbd>▲</kbd> : Move Up</p>
-                  <p><kbd>A</kbd> or <kbd>◀</kbd> : Move Left</p>
-                  <p><kbd>S</kbd> or <kbd>▼</kbd> : Move Down</p>
-                  <p><kbd>D</kbd> or <kbd>▶</kbd> : Move Right</p>
-                  <p><kbd>Space</kbd> : Pause / Resume / Start, or Restart at Game Over</p>
+                  <p><span>Move Up</span>    <span><kbd>W</kbd> or <kbd>↑</kbd></span></p>
+                  <p><span>Move Left</span>  <span><kbd>A</kbd> or <kbd>←</kbd></span></p>
+                  <p><span>Move Down</span>  <span><kbd>S</kbd> or <kbd>↓</kbd></span></p>
+                  <p><span>Move Right</span> <span><kbd>D</kbd> or <kbd>→</kbd></span></p>
+                  <p><span>Pause / Start</span> <span><kbd>Space</kbd></span></p>
                 </div>
               </div>
             </div>
-
             <div class="panel-actions center-actions">
               <button class="arcade-btn primary-btn back-to-game-btn">🕹️ BACK TO GAME</button>
             </div>
           </div>
         </section>
+
       </main>
 
-      <!-- App Footer Area -->
+      <!-- FOOTER -->
       <footer class="app-footer">
-        <p>Neon Snake Arcade © 2026. Optimized for speed and responsiveness.</p>
+        <p>Neon Snake Arcade &copy; 2026 &nbsp;·&nbsp; Local play, no server required</p>
       </footer>
     </div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
